@@ -1,0 +1,111 @@
+﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
+using System.Collections.Generic;
+using PerishedEngine.GameStates;
+using LitJson;
+using PerishedEngine.Utilities;
+using PerishedEngine.Managers;
+
+namespace PerishedEngine
+{
+    /// <summary>
+    /// This is the main type for your game.
+    /// </summary>
+    public class MainGame : Game
+    {
+        GraphicsDeviceManager graphics;
+        SpriteBatch spriteBatch;
+
+        private int currentState = 0;
+        private List<GameState> states = new List<GameState>();
+
+        public MainGame()
+        {
+            graphics = new GraphicsDeviceManager(this);
+            Content.RootDirectory = "Content";
+        }
+
+        /// <summary>
+        /// Allows the game to perform any initialization it needs to before starting to run.
+        /// This is where it can query for any required services and load any non-graphic
+        /// related content.  Calling base.Initialize will enumerate through any components
+        /// and initialize them as well.
+        /// </summary>
+        protected override void Initialize()
+        {
+            // Create a new SpriteBatch, which can be used to draw textures.
+            spriteBatch = new SpriteBatch(GraphicsDevice);
+
+            ResourceManager.Instance.Init(Content);
+            ResourceManager.Instance.AddSprite("Overworld", "Sprites/Overworld");
+            ResourceManager.Instance.AddSprite("Player", "Sprites/player");
+
+            GraphicsManager.Instance.Init(spriteBatch);
+
+            JsonRead jr = new JsonRead();
+            JsonData config = jr.ReadData("Data/Config.json");
+
+            Window.Title = (string)config["windowName"];
+
+            graphics.IsFullScreen = (bool)config["fullscreen"];
+            graphics.PreferredBackBufferWidth = (int)config["windowWidth"];
+            graphics.PreferredBackBufferHeight = (int)config["windowHeight"];
+            graphics.ApplyChanges();
+
+            states.Add(new PlayingState());
+            states[currentState].game = this;
+            states[currentState].Init();
+
+            base.Initialize();
+        }
+
+        /// <summary>
+        /// LoadContent will be called once per game and is the place to load
+        /// all of your content.
+        /// </summary>
+        protected override void LoadContent()
+        {
+            // TODO: use this.Content to load your game content here
+        }
+
+        /// <summary>
+        /// UnloadContent will be called once per game and is the place to unload
+        /// game-specific content.
+        /// </summary>
+        protected override void UnloadContent()
+        {
+            // TODO: Unload any non ContentManager content here
+        }
+
+        /// <summary>
+        /// Allows the game to run logic such as updating the world,
+        /// checking for collisions, gathering input, and playing audio.
+        /// </summary>
+        /// <param name="gameTime">Provides a snapshot of timing values.</param>
+        protected override void Update(GameTime gameTime)
+        {
+            InputManager.Instance.Update();
+
+            // TODO: Add your update logic here
+            states[currentState].Update(gameTime);
+
+            base.Update(gameTime);
+        }
+
+        /// <summary>
+        /// This is called when the game should draw itself.
+        /// </summary>
+        /// <param name="gameTime">Provides a snapshot of timing values.</param>
+        protected override void Draw(GameTime gameTime)
+        {
+            GraphicsDevice.Clear(Color.CornflowerBlue);
+
+            // TODO: Add your drawing code here
+            states[currentState].Draw();
+
+            base.Draw(gameTime);
+        }
+
+    }
+}
